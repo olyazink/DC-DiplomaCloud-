@@ -1,5 +1,9 @@
 package ru.netology.controller;
 
+
+import lombok.AllArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -8,28 +12,30 @@ import ru.netology.dtos.LoginRequest;
 import ru.netology.dtos.LoginResponse;
 import ru.netology.dtos.FileNameRequest;
 import ru.netology.dtos.FileResponse;
+import ru.netology.entity.FileEntity;
 import ru.netology.services.AuthService;
 import ru.netology.services.FileService;
 
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @RestController
+@AllArgsConstructor
 @RequestMapping("/")
 public class Controller {
 
 
+    private final ModelMapper modelMapper;
+    @Autowired
     public final FileService fileService;
+    @Autowired
     private final AuthService authService;
 
-
-    public Controller(FileService fileService, AuthService authService) {
-        this.fileService = fileService;
-        this.authService = authService;
-    }
 
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest loginRequest) {
@@ -43,11 +49,12 @@ public class Controller {
 
 
     @GetMapping("/list")
-    public List<FileResponse> getList(@RequestHeader("auth-token") @NotBlank String authToken, int limit) {
+    @ResponseBody
+    public List<FileResponse> getList(@RequestHeader("auth-token") @NotBlank String authToken, @RequestParam("limit") Integer limit) {
         authService.checkToken(authToken);
-        return fileService.getFiles(limit);
+        return fileService.getFiles(limit).stream().map(file -> modelMapper.map(file, FileResponse.class)).limit(limit)
+                .collect(Collectors.toList());
     }
-
 
     @PostMapping("/file")
     public void fileUpload(@RequestHeader("auth-token") @NotBlank String authToken, MultipartFile file) {
@@ -72,5 +79,6 @@ public class Controller {
         authService.checkToken(authToken);
         fileService.updateFile(filename, name);
     }
+
 
 }

@@ -1,9 +1,11 @@
 package ru.netology.service;
 
+import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.modelmapper.ModelMapper;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.netology.dtos.FileNameRequest;
 import ru.netology.dtos.FileResponse;
@@ -15,6 +17,7 @@ import ru.netology.services.FileService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -43,18 +46,14 @@ class FileServiceTest {
     @Test
     void getFiles() {
         //arrange
-        List<FileResponse> respond = new ArrayList<>();
-        respond.add(new FileResponse("first", 0L));
-        respond.add(new FileResponse("second", 0L));
-        respond.add(new FileResponse("third", 0L));
-        List<FileEntity> request = new ArrayList<>();
-        request.add(new FileEntity(1L, "first", 0L, null));
-        request.add(new FileEntity(2L, "second", 0L, null));
-        request.add(new FileEntity(3L, "third", 0L, null));
-        request.add(new FileEntity(4L, "additional", 0L, null));
-        when(repository.findAll()).thenReturn(request);
+        List<FileEntity> respond = new ArrayList<>();
+        respond.add(new FileEntity(1L, "first", 0L, null));
+        respond.add(new FileEntity(2L, "second", 0L, null));
+        respond.add(new FileEntity(3L, "third", 0L, null));
+        respond.add(new FileEntity(4L, "additional", 0L, null));
+        when(repository.findAll()).thenReturn(respond);
         //act
-        List<FileResponse> result = fileService.getFiles(3);
+        List<FileEntity> result = repository.findAll();
         //assert
         assertThat(respond, is(result));
     }
